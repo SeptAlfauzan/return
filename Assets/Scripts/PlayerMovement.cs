@@ -8,9 +8,11 @@ public class PlayerMovement : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public Vector2 speed = new Vector2(20, 20);
     public Animator PlayerAnimator;
-    Vector2 input;
     public new Rigidbody2D rigidbody;
     bool isFlipped = false;
+    bool isMoveDisable = false;
+    Vector2 input;
+    float playerAttack;
     // Start is called before the first frame update
     void Start()
     {
@@ -18,13 +20,17 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void Update() {
-        Debug.Log(Input.GetAxis("Fire1"));
+        playerAttack = Input.GetAxis("Fire1");
         input.x = Input.GetAxis("Horizontal");
         input.y = Input.GetAxis("Vertical");
 
+// change animation to attack
+        bool playerAttackStatus = PlayerAttackStatus(playerAttack);
+        PlayerAnimator.SetBool("Attack1", playerAttackStatus);
 // change idle animation to run animation
         float animatorSpeed = GetSetSpeedAnimator(input);
         PlayerAnimator.SetFloat("Speed", animatorSpeed);
+
 
         if(Input.GetAxis("Horizontal") < 0){
             isFlipped = true;
@@ -37,8 +43,11 @@ public class PlayerMovement : MonoBehaviour
 
         Vector2 movement = new Vector2(speed.x * input.x, speed.y * input.y);
         movement *= Time.deltaTime;
-
-        rigidbody.MovePosition(rigidbody.position + movement);
+        // disable movement when attacking
+        if (!isMoveDisable)
+        {
+            rigidbody.MovePosition(rigidbody.position + movement);
+        }
     }
         // Update is called once per frame
     void FixedUpdate() {
@@ -46,6 +55,16 @@ public class PlayerMovement : MonoBehaviour
     }
     void Flip(bool isFlipped){
         spriteRenderer.flipX = isFlipped;
+    }
+
+    bool PlayerAttackStatus(float attackInput){
+        Debug.Log(attackInput);
+        if(attackInput > 0){
+            isMoveDisable = true;
+            return true;
+        }
+        isMoveDisable = false;
+        return false;
     }
 
     float GetSetSpeedAnimator(Vector2 inputAxis){
